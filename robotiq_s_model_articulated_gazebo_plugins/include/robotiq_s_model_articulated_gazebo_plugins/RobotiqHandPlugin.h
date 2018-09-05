@@ -19,8 +19,10 @@
 #ifndef GAZEBO_ROBOTIQ_HAND_PLUGIN_HH
 #define GAZEBO_ROBOTIQ_HAND_PLUGIN_HH
 
-#include <robotiq_s_model_articulated_msgs/SModelRobotInput.h>
-#include <robotiq_s_model_articulated_msgs/SModelRobotOutput.h>
+// #include <robotiq_s_model_articulated_msgs/SModelRobotInput.h>
+// #include <robotiq_s_model_articulated_msgs/SModelRobotOutput.h>
+#include <robotiq_s_model_control/SModel_robot_input.h>
+#include <robotiq_s_model_control/SModel_robot_output.h>
 #include <gazebo_plugins/PubQueue.h>
 #include <ros/advertise_options.h>
 #include <ros/callback_queue.h>
@@ -94,7 +96,8 @@ class RobotiqHandPlugin : public gazebo::ModelPlugin
   /// \brief ROS topic callback to update Robotiq Hand Control Commands.
   /// \param[in] _msg Incoming ROS message with the next hand command.
   private: void SetHandleCommand(
-    const robotiq_s_model_articulated_msgs::SModelRobotOutput::ConstPtr &_msg);
+    // const robotiq_s_model_articulated_msgs::SModelRobotOutput::ConstPtr &_msg);
+    const robotiq_s_model_control::SModel_robot_output::ConstPtr &_msg);
 
   /// \brief Update PID Joint controllers.
   /// \param[in] _dt time step size since last update.
@@ -164,7 +167,8 @@ class RobotiqHandPlugin : public gazebo::ModelPlugin
   /// \return True if all the fields are withing the correct range or false
   /// otherwise.
   private: bool VerifyCommand(
-    const robotiq_s_model_articulated_msgs::SModelRobotOutput::ConstPtr &_command);
+    // const robotiq_s_model_articulated_msgs::SModelRobotOutput::ConstPtr &_command);
+    const robotiq_s_model_control::SModel_robot_output::ConstPtr &_command);
 
   /// \brief Number of joints in the hand.
   /// The three fingers can do abduction/adduction.
@@ -216,19 +220,24 @@ class RobotiqHandPlugin : public gazebo::ModelPlugin
   /// \brief HandleControl message. Originally published by user but some of the
   /// fields might be internally modified. E.g.: When releasing the hand for
   // changing the grasping mode.
-  private: robotiq_s_model_articulated_msgs::SModelRobotOutput handleCommand;
+  // private: robotiq_s_model_articulated_msgs::SModelRobotOutput handleCommand;
+  private: robotiq_s_model_control::SModel_robot_output handleCommand;
 
   /// \brief HandleControl message. Last command received before changing the
   /// grasping mode.
-  private: robotiq_s_model_articulated_msgs::SModelRobotOutput lastHandleCommand;
+  // private: robotiq_s_model_articulated_msgs::SModelRobotOutput lastHandleCommand;
+  private: robotiq_s_model_control::SModel_robot_output lastHandleCommand;
+
 
   /// \brief Previous command received. We know if the hand is opening or
   /// closing by comparing the current command and the previous one.
-  private: robotiq_s_model_articulated_msgs::SModelRobotOutput prevCommand;
+  // private: robotiq_s_model_articulated_msgs::SModelRobotOutput prevCommand;
+  private: robotiq_s_model_control::SModel_robot_output prevCommand;
 
   /// \brief Original HandleControl message (published by user and unmodified).
-  private: robotiq_s_model_articulated_msgs::SModelRobotOutput userHandleCommand;
-
+  // private: robotiq_s_model_articulated_msgs::SModelRobotOutput userHandleCommand;
+  private: robotiq_s_model_control::SModel_robot_output userHandleCommand;
+  
   /// \brief gazebo world update connection.
   private: gazebo::event::ConnectionPtr updateConnection;
 
@@ -236,7 +245,8 @@ class RobotiqHandPlugin : public gazebo::ModelPlugin
   private: gazebo::common::Time lastControllerUpdateTime;
 
   /// \brief Robotiq Hand State.
-  private: robotiq_s_model_articulated_msgs::SModelRobotInput handleState;
+  // private: robotiq_s_model_articulated_msgs::SModelRobotInput handleState;
+  private: robotiq_s_model_control::SModel_robot_input handleState;
 
   /// \brief Controller update mutex.
   private: boost::mutex controlMutex;
@@ -251,8 +261,8 @@ class RobotiqHandPlugin : public gazebo::ModelPlugin
   private: ros::Publisher pubHandleState;
 
   /// \brief ROS publisher queue for Robotiq Hand state.
-  private: PubQueue<robotiq_s_model_articulated_msgs::SModelRobotInput>::Ptr pubHandleStateQueue;
-
+  // private: PubQueue<robotiq_s_model_articulated_msgs::SModelRobotInput>::Ptr pubHandleStateQueue;
+  private: PubQueue<robotiq_s_model_control::SModel_robot_input>::Ptr pubHandleStateQueue;
   /// \brief Joint state publisher (rviz visualization).
   private: ros::Publisher pubJointStates;
 

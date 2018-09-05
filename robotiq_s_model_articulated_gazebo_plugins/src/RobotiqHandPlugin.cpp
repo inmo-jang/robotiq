@@ -18,8 +18,10 @@
     This file has been modified from the original, by Devon Ash
 */ 
 
-#include <robotiq_s_model_articulated_msgs/SModelRobotInput.h>
-#include <robotiq_s_model_articulated_msgs/SModelRobotOutput.h>
+// #include <robotiq_s_model_articulated_msgs/SModelRobotInput.h>
+// #include <robotiq_s_model_articulated_msgs/SModelRobotOutput.h>
+#include <robotiq_s_model_control/SModel_robot_input.h>
+#include <robotiq_s_model_control/SModel_robot_output.h>
 #include <ros/ros.h>
 #include <string>
 #include <vector>
@@ -181,8 +183,11 @@ void RobotiqHandPlugin::Load(gazebo::physics::ModelPtr _parent,
   this->pmq.startServiceThread();
 
   // Broadcasts state.
-  this->pubHandleStateQueue = this->pmq.addPub<robotiq_s_model_articulated_msgs::SModelRobotInput>();
-  this->pubHandleState = this->rosNode->advertise<robotiq_s_model_articulated_msgs::SModelRobotInput>(
+  // this->pubHandleStateQueue = this->pmq.addPub<robotiq_s_model_articulated_msgs::SModelRobotInput>();
+  // this->pubHandleState = this->rosNode->advertise<robotiq_s_model_articulated_msgs::SModelRobotInput>(
+  //   stateTopicName, 100, true);
+  this->pubHandleStateQueue = this->pmq.addPub<robotiq_s_model_control::SModel_robot_input>();
+  this->pubHandleState = this->rosNode->advertise<robotiq_s_model_control::SModel_robot_input>(
     stateTopicName, 100, true);
 
   // Broadcast joint state.
@@ -193,7 +198,8 @@ void RobotiqHandPlugin::Load(gazebo::physics::ModelPtr _parent,
 
   // Subscribe to user published handle control commands.
   ros::SubscribeOptions handleCommandSo =
-    ros::SubscribeOptions::create<robotiq_s_model_articulated_msgs::SModelRobotOutput>(
+    // ros::SubscribeOptions::create<robotiq_s_model_articulated_msgs::SModelRobotOutput>(
+      ros::SubscribeOptions::create<robotiq_s_model_control::SModel_robot_output>(
       controlTopicName, 100,
       boost::bind(&RobotiqHandPlugin::SetHandleCommand, this, _1),
       ros::VoidPtr(), &this->rosQueue);
@@ -251,7 +257,8 @@ bool RobotiqHandPlugin::VerifyField(const std::string &_label, int _min,
 
 ////////////////////////////////////////////////////////////////////////////////
 bool RobotiqHandPlugin::VerifyCommand(
-    const robotiq_s_model_articulated_msgs::SModelRobotOutput::ConstPtr &_command)
+    // const robotiq_s_model_articulated_msgs::SModelRobotOutput::ConstPtr &_command)
+     const robotiq_s_model_control::SModel_robot_output::ConstPtr &_command)
 {
   return this->VerifyField("rACT", 0, 1,   _command->rACT) &&
          this->VerifyField("rMOD", 0, 3,   _command->rACT) &&
@@ -275,7 +282,8 @@ bool RobotiqHandPlugin::VerifyCommand(
 
 ////////////////////////////////////////////////////////////////////////////////
 void RobotiqHandPlugin::SetHandleCommand(
-    const robotiq_s_model_articulated_msgs::SModelRobotOutput::ConstPtr &_msg)
+    // const robotiq_s_model_articulated_msgs::SModelRobotOutput::ConstPtr &_msg)
+    const robotiq_s_model_control::SModel_robot_output::ConstPtr &_msg)
 {
   boost::mutex::scoped_lock lock(this->controlMutex);
 
