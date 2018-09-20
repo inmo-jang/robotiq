@@ -295,9 +295,11 @@ void RobotiqHandPlugin::SetHandleCommand(
   }
 
   this->prevCommand = this->handleCommand;
-
+  
   // Update handleCommand.
   this->handleCommand = *_msg;
+
+  printf("SetHandleComnad");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -422,6 +424,7 @@ void RobotiqHandPlugin::UpdateStates()
         break;
 
       case ICF:
+        // printf("test_ICF");
         if (this->handleCommand.rGTO == 0)
         {
           // "Stop" action.
@@ -721,7 +724,7 @@ void RobotiqHandPlugin::UpdatePIDControl(double _dt)
           break;
       }
     }
-    else if (i >= 2 && i <= 4)
+    else if (i >= 2 && i <= 4) 
     {
       if (this->graspingMode == Pinch)
       {
@@ -737,12 +740,26 @@ void RobotiqHandPlugin::UpdatePIDControl(double _dt)
           ((this->MaxVelocity - this->MinVelocity) *
           this->handleCommand.rSPA / 255.0);
       }
-      else
+      else // This seems to be for Finger A/B/C in Wide/Basic mode
       {
+        if (i==2){
         targetPose = this->joints[i]->GetLowerLimit(0).Radian() +
           (this->joints[i]->GetUpperLimit(0).Radian() -
            this->joints[i]->GetLowerLimit(0).Radian())
           * this->handleCommand.rPRA / 255.0;
+        }
+        else if (i==3){
+        targetPose = this->joints[i]->GetLowerLimit(0).Radian() +
+          (this->joints[i]->GetUpperLimit(0).Radian() -
+           this->joints[i]->GetLowerLimit(0).Radian())
+          * this->handleCommand.rPRB / 255.0;
+        }
+        else if (i==4){
+        targetPose = this->joints[i]->GetLowerLimit(0).Radian() +
+          (this->joints[i]->GetUpperLimit(0).Radian() -
+           this->joints[i]->GetLowerLimit(0).Radian())
+          * this->handleCommand.rPRC / 255.0;
+        }                
       }
     }
 
