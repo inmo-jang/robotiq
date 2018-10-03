@@ -74,8 +74,8 @@ there are multiple hands then a prefix followed by an "_" is needed.
     </link>
 
     <gazebo reference="${prefix}link_1">
-      <mu1>1.1</mu1>
-      <mu2>1.1</mu2>
+      <mu1>10000</mu1>
+      <mu2>10000</mu2>
       <minDepth>0.001</minDepth>
     </gazebo>
 
@@ -108,8 +108,8 @@ there are multiple hands then a prefix followed by an "_" is needed.
     </link>
 
     <gazebo reference="${prefix}link_2">
-      <mu1>1.1</mu1>
-      <mu2>1.1</mu2>
+      <mu1>10000</mu1>
+      <mu2>10000</mu2>
       <minDepth>0.001</minDepth>
     </gazebo>
 
@@ -142,8 +142,8 @@ there are multiple hands then a prefix followed by an "_" is needed.
     </link>
 
     <gazebo reference="${prefix}link_3">
-      <mu1>1.1</mu1>
-      <mu2>1.1</mu2>
+      <mu1>10000</mu1>
+      <mu2>10000</mu2>
       <minDepth>0.001</minDepth>
     </gazebo>
 
@@ -748,8 +748,9 @@ there are multiple hands then a prefix followed by an "_" is needed.
       </link>
 
       <gazebo reference="${prefix}palm">
-        <mu1>1.1</mu1>
-        <mu2>1.1</mu2>
+        <mu1>10000</mu1>
+        <mu2>10000</mu2>
+        <minDepth>0.001</minDepth>
       </gazebo>
     <!-- End of link list -->
 
