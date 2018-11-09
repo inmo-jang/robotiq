@@ -308,6 +308,10 @@ def callback_Gripper(status):
 
 
 def listener():
+    # Initialise "teleoperation_mode", otherwise callback error comes out from "callback_Gripper"
+    global teleoperation_mode
+    teleoperation_mode = ""
+
     # Subscribing information from LEAP in Unity
     rospy.Subscriber("/rain/status",RainMsg, callback_MODE, queue_size=1)    
     rospy.Subscriber("/leap_motion/leap_filtered",LeapMsg_orion, callback_Gripper, queue_size=1)
