@@ -1,5 +1,7 @@
 # Robotiq 3-finger Gripper 
 
+This is a back-up repo (demo for RAIN theme meeting on Nov 2018): action client interface is used for controlling UR5.
+
 ## Overview
 
 This is a Robotiq 3-finger Gripper package for RAIN hub project. 
