@@ -49,53 +49,66 @@ from leap_motion.msg import Human_orion  as LeapMsg_orion # Newly defined LEAP R
 from rain_unity.msg import rain_system  as RainMsg # To receive the system status from Unity
 
 import sys
+import copy
 from time import sleep
 
+###############################################################
+###############################################################
+value_starting_to_close = 0.1
 
+###############################################################
+###############################################################
+###############################################################
+###############################################################
 
-def callback_MODE(status):
+global teleoperation_mode, LeapMsg_local, command, pub
+teleoperation_mode = ""
+LeapMsg_local = None
+
+def callback_Mode(status):
     global teleoperation_mode
     teleoperation_mode = status.teleoperation_mode
 
-def callback_Gripper(status):
+def callback_Leap(status):
+    global LeapMsg_local
+    LeapMsg_local = status
+
+
+def control_gripper():
 
     global pub
-    global teleoperation_mode
+    global teleoperation_mode, LeapMsg_local
     global command
 
+    publish_rate = 250
+    rate = rospy.Rate(publish_rate)
 
-    if(teleoperation_mode == "MODE_1"):
-        if (status.left_hand.is_present):
-            # Control the Gripper
-            grab_strength_from_unity = status.left_hand.grab_strength
-            if (grab_strength_from_unity <= 1 and grab_strength_from_unity > 0.5): # Fully Close
-                # grab_strength = 255 # This is for the on-off controller
-                grab_strength = round(255*(grab_strength_from_unity-0.5)*2,0) # Give an integer
-            else: # Fully Open
-                grab_strength = 0 # Fully Open
-                
+    while not rospy.is_shutdown():
 
-            command.rPRA = grab_strength
+        if LeapMsg_local is not None and teleoperation_mode == "MODE_1":
+            # Get Current Status
+            leap_status = copy.deepcopy(LeapMsg_local)
 
-            pub.publish(command)
+            if (leap_status.left_hand.is_present is True):
+                # Control the Gripper
+                grab_strength_from_unity = leap_status.left_hand.grab_strength
+                if (grab_strength_from_unity <= 1 and grab_strength_from_unity > value_starting_to_close): # Fully Close
+                    # grab_strength = 255 # This is for the on-off controller
+                    grab_strength = round(255*(grab_strength_from_unity-value_starting_to_close)*1.0/(1.0-value_starting_to_close),0) # Give an integer
+                else: # Fully Open
+                    grab_strength = 0 # Fully Open
+                    
 
-            rospy.sleep(0.1)
+                command.rPRA = grab_strength
 
-
-def listener():
-    # Initialise "teleoperation_mode", otherwise callback error comes out from "callback_Gripper"
-    global teleoperation_mode
-    teleoperation_mode = ""
-
-    # Subscribing information from LEAP in Unity
-    rospy.Subscriber("/rain/status",RainMsg, callback_MODE, queue_size=1)    
-    rospy.Subscriber("/leap_motion/leap_filtered",LeapMsg_orion, callback_Gripper, queue_size=1)
-    
-    # spin() simply keeps python from exiting until this node is stopped
-    rospy.spin()
+        pub.publish(command)
+        rate.sleep()
+        
 
 
-def publisher(myArg1):
+
+def main(myArg1):
+
     global pub
     global command
     
@@ -109,10 +122,13 @@ def publisher(myArg1):
 
             elif myArg1 == 'real':
                 ## This is for the real Gripper:
-                pub = rospy.Publisher('SModelRobotOutput', outputMsg.SModel_robot_output)
+                pub = rospy.Publisher('SModelRobotOutput', outputMsg.SModel_robot_output, queue_size = 1)
   
+
+
+
             # Initilise the gripper
-            command = outputMsg.SModel_robot_output();
+            command = outputMsg.SModel_robot_output()
     
             command.rACT = 1 # Activation
             command.rGTO = 1 # 
@@ -120,9 +136,19 @@ def publisher(myArg1):
             command.rICF = 0 # Individual Control Finger mode (1: Yes / 0: No)
             command.rFRA = 0 # Final grasping force (Maximum = 255). This does not matter in Gazebo.
 
-         
+            command.rPRA = 0 # Fully Open
+
+
+
             pub.publish(command)
-            rospy.sleep(0.1)
+            rospy.sleep(1)
+
+
+            # Subscribing information from LEAP in Unity
+            rospy.Subscriber("/rain/status",RainMsg, callback_Mode, queue_size=1)    
+            rospy.Subscriber("/leap_motion/leap_filtered",LeapMsg_orion, callback_Leap, queue_size=1)
+
+            control_gripper()
 
         except KeyboardInterrupt:
             rospy.signal_shutdown("KeyboardInterrupt")
@@ -131,16 +157,13 @@ def publisher(myArg1):
         rospy.signal_shutdown("Wrong Argument: It should be either 'gazebo' or 'real'")
 
 
-def main(myArg1):
-    publisher(myArg1)
-    listener()
 
 if __name__ == '__main__': 
-    # This is for real
-    if len(sys.argv) < 2:
-        print("Usage: SModelController.py [gazebo] or [real]")
-    else:
-        main(sys.argv[1])
+    # # This is for real
+    # if len(sys.argv) < 2:
+    #     print("Usage: SModelController.py [gazebo] or [real]")
+    # else:
+    #     main(sys.argv[1])
         
     # This is for debug    
-    # main('gazebo')
+    main('real')
