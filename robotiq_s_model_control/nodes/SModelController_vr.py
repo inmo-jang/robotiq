@@ -48,234 +48,9 @@ from robotiq_s_model_control.msg import _SModel_robot_output  as outputMsg
 from leap_motion.msg import Human_orion  as LeapMsg_orion # Newly defined LEAP ROS msg
 from rain_unity.msg import rain_system  as RainMsg # To receive the system status from Unity
 
+import sys
 from time import sleep
 
-
-def genCommand(char_input, command):
-    """Update the command according to the character entered by the user."""    
-        
-    if len(char_input.split()) == 1:
-        char = char_input
-        command.rICF = 0
-
-        if char == 'a':
-            command = outputMsg.SModel_robot_output();
-            command.rACT = 1
-            command.rGTO = 1
-            command.rSPA = 255
-            command.rICF = 0
-            command.rFRA = 0 # This does not matter in Gazebo
-
-        if char == 'r':
-            command = outputMsg.SModel_robot_output();
-            command.rACT = 0
-
-        if char == 'c':
-            command.rPRA = 255
-
-        if char == 'o':
-            command.rPRA = 0
-
-        if char == 'b':
-            command.rMOD = 0
-            
-        if char == 'p':
-            command.rMOD = 1
-            
-        if char == 'w':
-            command.rMOD = 2
-            
-        if char == 's':
-            command.rMOD = 3
-
-        #If the command entered is a int, assign this value to rPRA
-        try: 
-            command.rPRA = int(char)
-            if command.rPRA > 255:
-                command.rPRA = 255
-            if command.rPRA < 0:
-                command.rPRA = 0
-        except ValueError:
-            pass                    
-            
-        if char == 'f':
-            command.rSPA += 25
-            if command.rSPA > 255:
-                command.rSPA = 255
-                
-        if char == 'l':
-            command.rSPA -= 25
-            if command.rSPA < 0:
-                command.rSPA = 0
-
-                
-        if char == 'i':
-            command.rFRA += 25
-            if command.rFRA > 255:
-                command.rFRA = 255
-                
-        if char == 'd':
-            command.rFRA -= 25
-            if command.rFRA < 0:
-                command.rFRA = 0
-
-    if len(char_input.split()) == 2:
-        char, pose = char_input.split()
-        #Finger mode
-        if char == 'f1':
-            command.rICF = 1
-            command.rPRA = int(pose)
-
-        if char == 'f2':
-            command.rICF = 1
-            command.rPRB = int(pose)
-
-        if char == 'f3':
-            command.rICF = 1
-            command.rPRC = int(pose)
-
-
-    return command
-
-
-
-
-def genCommand_LEAP(char_input, command):
-    """Update the command according to the character entered by the user."""    
-        
-    if len(char_input.split()) == 1:
-        char = char_input
-        command.rICF = 0
-
-        if char == 'a':
-            command = outputMsg.SModel_robot_output();
-            command.rACT = 1
-            command.rGTO = 1
-            command.rSPA = 255
-            command.rICF = 0
-            command.rFRA = 0 # This does not matter in Gazebo
-
-        if char == 'r':
-            command = outputMsg.SModel_robot_output();
-            command.rACT = 0
-
-        if char == 'c':
-            command.rPRA = 255
-
-        if char == 'o':
-            command.rPRA = 0
-
-        if char == 'b':
-            command.rMOD = 0
-            
-        if char == 'p':
-            command.rMOD = 1
-            
-        if char == 'w':
-            command.rMOD = 2
-            
-        if char == 's':
-            command.rMOD = 3
-
-        #If the command entered is a int, assign this value to rPRA
-        try: 
-            command.rPRA = int(char)
-            if command.rPRA > 255:
-                command.rPRA = 255
-            if command.rPRA < 0:
-                command.rPRA = 0
-        except ValueError:
-            pass                    
-            
-        if char == 'f':
-            command.rSPA += 25
-            if command.rSPA > 255:
-                command.rSPA = 255
-                
-        if char == 'l':
-            command.rSPA -= 25
-            if command.rSPA < 0:
-                command.rSPA = 0
-
-                
-        if char == 'i':
-            command.rFRA += 25
-            if command.rFRA > 255:
-                command.rFRA = 255
-                
-        if char == 'd':
-            command.rFRA -= 25
-            if command.rFRA < 0:
-                command.rFRA = 0
-
-    if len(char_input.split()) == 2:
-        char, pose = char_input.split()
-        #Finger mode
-        if char == 'f1':
-            command.rICF = 1
-            command.rPRA = int(pose)
-
-        if char == 'f2':
-            command.rICF = 1
-            command.rPRB = int(pose)
-
-        if char == 'f3':
-            command.rICF = 1
-            command.rPRC = int(pose)
-
-
-    return command
-
-
-def askForCommand(command):
-    """Ask the user for a command to send to the gripper."""    
-
-    currentCommand  = 'Simple S-Model Controller\n-----\nCurrent command:'
-    currentCommand += ' rACT = '  + str(command.rACT)
-    currentCommand += ', rMOD = ' + str(command.rMOD)
-    currentCommand += ', rGTO = ' + str(command.rGTO)
-    # currentCommand += ', rATR = ' + str(command.rATR)
-##    currentCommand += ', rGLV = ' + str(command.rGLV)
-    currentCommand += ', rICF = ' + str(command.rICF)
-##    currentCommand += ', rICS = ' + str(command.rICS)
-    currentCommand += ', rPRA = ' + str(command.rPRA)
-    # currentCommand += ', rSPA = ' + str(command.rSPA)
-    # currentCommand += ', rFRA = ' + str(command.rFRA)
-
-    #We only show the simple control mode
-    currentCommand += ', rPRB = ' + str(command.rPRB)
-##    currentCommand += ', rSPB = ' + str(command.rSPB)
-##    currentCommand += ', rFRB = ' + str(command.rFRB)
-    currentCommand += ', rPRC = ' + str(command.rPRC)
-##    currentCommand += ', rSPC = ' + str(command.rSPC)
-##    currentCommand += ', rFRC = ' + str(command.rFRC)
-    currentCommand += ', rPRS = ' + str(command.rPRS)
-##    currentCommand += ', rSPS = ' + str(command.rSPS)
-##    currentCommand += ', rFRS = ' + str(command.rFRS)
-
-    print currentCommand
-
-    strAskForCommand  = '\n======== Available commands ========\n'
-    strAskForCommand += '--------Simplified Control Mode-----------\n'    
-    strAskForCommand += 'r: Reset\n'
-    strAskForCommand += 'a: Activate\n'
-    strAskForCommand += 'c: Close\n'
-    strAskForCommand += 'o: Open\n'
-    strAskForCommand += 'b: Basic mode\n'
-    strAskForCommand += 'p: Pinch mode\n'
-    strAskForCommand += 'w: Wide mode\n'
-    strAskForCommand += 's: Scissor mode\n'
-    strAskForCommand += '(0-255): Go to that position\n'
-    # strAskForCommand += 'f: Faster\n'
-    # strAskForCommand += 'l: Slower\n'
-    # strAskForCommand += 'i: Increase force\n'
-    # strAskForCommand += 'd: Decrease force\n'
-    strAskForCommand += '--------Individual Control Mode-----------\n'      
-    strAskForCommand += 'Example: "f1 255" for Finger A moving to 255\n'
-    strAskForCommand += '------------------------------------------\n'      
-    strAskForCommand += '-->'
-
-    return raw_input(strAskForCommand)
 
 
 def callback_MODE(status):
@@ -320,35 +95,52 @@ def listener():
     rospy.spin()
 
 
-def publisher():
+def publisher(myArg1):
     global pub
     global command
     
-    rospy.init_node('Controller_Gripper')
+    if (myArg1 == 'gazebo') or (myArg1 == 'real'):
+        try:
+            rospy.init_node('Controller_Gripper', anonymous=True,  disable_signals=True)
     
-    ## This is for the real Gripper:
-    pub = rospy.Publisher('SModelRobotOutput', outputMsg.SModel_robot_output)
-    ## This is for the gazebo Gripper:
-    # pub = rospy.Publisher('right_hand/command', outputMsg.SModel_robot_output, queue_size = 1)
-  
-    # Initilise the gripper
-    command = outputMsg.SModel_robot_output();
+            if myArg1 == 'gazebo':
+                ## This is for the gazebo Gripper:
+                pub = rospy.Publisher('right_hand/command', outputMsg.SModel_robot_output, queue_size = 1)
 
+            elif myArg1 == 'real':
+                ## This is for the real Gripper:
+                pub = rospy.Publisher('SModelRobotOutput', outputMsg.SModel_robot_output)
+  
+            # Initilise the gripper
+            command = outputMsg.SModel_robot_output();
     
-    
-    command.rACT = 1 # Activation
-    command.rGTO = 1 # 
-    command.rSPA = 255 # Opening/Closing Speed (Maximum = 255)
-    command.rICF = 0 # Individual Control Finger mode (1: Yes / 0: No)
-    command.rFRA = 0 # Final grasping force (Maximum = 255). This does not matter in Gazebo.
+            command.rACT = 1 # Activation
+            command.rGTO = 1 # 
+            command.rSPA = 255 # Opening/Closing Speed (Maximum = 255)
+            command.rICF = 0 # Individual Control Finger mode (1: Yes / 0: No)
+            command.rFRA = 0 # Final grasping force (Maximum = 255). This does not matter in Gazebo.
 
          
-    pub.publish(command)
-    rospy.sleep(0.1)
+            pub.publish(command)
+            rospy.sleep(0.1)
 
-def main():
-    publisher()
+        except KeyboardInterrupt:
+            rospy.signal_shutdown("KeyboardInterrupt")
+            raise            
+    else:
+        rospy.signal_shutdown("Wrong Argument: It should be either 'gazebo' or 'real'")
+
+
+def main(myArg1):
+    publisher(myArg1)
     listener()
 
-if __name__ == '__main__':
-    main()
+if __name__ == '__main__': 
+    # This is for real
+    if len(sys.argv) < 2:
+        print("Usage: SModelController.py [gazebo] or [real]")
+    else:
+        main(sys.argv[1])
+        
+    # This is for debug    
+    # main('gazebo')
