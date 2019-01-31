@@ -156,7 +156,7 @@ def main(myArg1):
     
             command.rACT = 1 # Activation
             command.rGTO = 1 # 
-            command.rSPA = 0 # Opening/Closing Speed (Maximum = 255)
+            command.rSPA = 255 # Opening/Closing Speed (Maximum = 255)
             command.rICF = 0 # Individual Control Finger mode (1: Yes / 0: No)
             command.rFRA = 0 # Final grasping force (Maximum = 255). This does not matter in Gazebo.
 
