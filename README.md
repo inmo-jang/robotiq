@@ -1,5 +1,7 @@
 # Robotiq 3-finger Gripper 
 
+This is the release branch for Phase 1 (Dec 2018) teleoperation system using Leap Motion to control the manipulator, as described in TAROS2019 paper.
+
 ## Overview
 
 This is a Robotiq 3-finger Gripper package for RAIN hub project. 
