@@ -95,9 +95,9 @@ def control_gripper():
             # Get Current Status
             leap_status = copy.deepcopy(LeapMsg_local)
 
-            if (leap_status.left_hand.is_present is True):
+            if (leap_status.right_hand.is_present is True):
                 # Control the Gripper's position
-                grab_strength_from_unity = leap_status.left_hand.grab_strength
+                grab_strength_from_unity = leap_status.right_hand.grab_strength
                 if (grab_strength_from_unity <= 1 and grab_strength_from_unity > value_starting_to_close): # Fully Close
                     # grab_strength = 255 # This is for the on-off controller
                     grab_strength = round(255*(grab_strength_from_unity-value_starting_to_close)*1.0/(1.0-value_starting_to_close),0) # Give an integer
