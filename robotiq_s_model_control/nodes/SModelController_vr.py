@@ -161,6 +161,7 @@ def main(myArg1):
             command.rFRA = 0 # Final grasping force (Maximum = 255). This does not matter in Gazebo.
 
             command.rPRA = 0 # Fully Open
+            command.rMOD = 1 # PinchMode (1)
 
 
 
