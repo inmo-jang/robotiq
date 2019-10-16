@@ -46,7 +46,7 @@ import roslib; roslib.load_manifest('robotiq_s_model_control')
 import rospy
 from robotiq_s_model_control.msg import _SModel_robot_output  as outputMsg
 from robotiq_s_model_control.msg import _SModel_robot_input  as inputMsg
-from leap_motion.msg import Human_orion  as LeapMsg_orion # Newly defined LEAP ROS msg
+from rain_unity.msg import Human_orion  as LeapMsg_orion # Newly defined LEAP ROS msg
 from rain_unity.msg import rain_system  as RainMsg # To receive the system status from Unity
 
 import sys
@@ -171,7 +171,7 @@ def main(myArg1):
 
             # Subscribing information from LEAP in Unity
             rospy.Subscriber("/rain/status",RainMsg, callback_Mode, queue_size=1)    
-            rospy.Subscriber("/leap_motion/leap_filtered",LeapMsg_orion, callback_Leap, queue_size=1)
+            rospy.Subscriber("/rain/leap_motion",LeapMsg_orion, callback_Leap, queue_size=1)
 
             rospy.Subscriber("/SModelRobotInput",inputMsg.SModel_robot_input, callback_Gripper, queue_size=1)    
             control_gripper()
