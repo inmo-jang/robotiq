@@ -193,7 +193,7 @@ int main(int argc, char *argv[]) {
 
   // joint state publisher
   ros::Publisher joint_pub;
-  joint_pub = nh.advertise<sensor_msgs::JointState>("joint_states", 10);
+  joint_pub = nh.advertise<sensor_msgs::JointState>("gripper_joint_states", 10);
 
   // robotiq state message subscriber
   ros::Subscriber joint_sub;
