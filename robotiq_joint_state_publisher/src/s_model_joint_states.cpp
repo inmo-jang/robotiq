@@ -195,9 +195,19 @@ int main(int argc, char *argv[]) {
   ros::Publisher joint_pub;
   joint_pub = nh.advertise<sensor_msgs::JointState>("gripper_joint_states", 10);
 
+  // set the gripper model (i.e. gazebo or real) - real is default
+  std::string gripper_model;
+  pnh.param<std::string>("model", gripper_model, "real");
+
   // robotiq state message subscriber
   ros::Subscriber joint_sub;
-  joint_sub = nh.subscribe("SModelRobotInput", 10, &Robotiq3::callback, &robotiq);
+  if(gripper_model=="real"){
+    joint_sub = nh.subscribe("SModelRobotInput", 10, &Robotiq3::callback, &robotiq);
+  }
+  else if(gripper_model=="gazebo"){
+    joint_sub = nh.subscribe("right_hand/state", 10, &Robotiq3::callback, &robotiq);
+  }
+  
   
   // Output JointState message
   sensor_msgs::JointState joint_msg;
