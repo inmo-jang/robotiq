@@ -46,8 +46,7 @@ import roslib; roslib.load_manifest('robotiq_s_model_control')
 import rospy
 from robotiq_s_model_control.msg import _SModel_robot_output  as outputMsg
 from robotiq_s_model_control.msg import _SModel_robot_input  as inputMsg
-from rain_unity.msg import Human_orion  as LeapMsg_orion # Newly defined LEAP ROS msg
-from rain_unity.msg import rain_system  as RainMsg # To receive the system status from Unity
+from std_msgs.msg import Float32 # To receive the system status from Unity
 
 import sys
 import copy
@@ -63,18 +62,13 @@ value_for_max_speed = 125 # Unit:0-255. If gPOA - rPRA is more than this value, 
 ###############################################################
 ###############################################################
 
-global teleoperation_mode, LeapMsg_local, GripperMsg_local, command, pub
-teleoperation_mode = ""
-LeapMsg_local = None
+global UnityMsg_local, GripperMsg_local, command, pub
+UnityMsg_local = None
 GripperMsg_local = None
 
-def callback_Mode(status):
-    global teleoperation_mode
-    teleoperation_mode = status.teleoperation_mode
-
-def callback_Leap(status):
-    global LeapMsg_local
-    LeapMsg_local = status
+def callback_unity(status):
+    global UnityMsg_local
+    UnityMsg_local = status
 
 def callback_Gripper(status):
     global GripperMsg_local
@@ -83,7 +77,7 @@ def callback_Gripper(status):
 def control_gripper():
 
     global pub
-    global teleoperation_mode, LeapMsg_local, GripperMsg_local
+    global UnityMsg_local, GripperMsg_local
     global command
 
     publish_rate = 250
@@ -91,38 +85,38 @@ def control_gripper():
 
     while not rospy.is_shutdown():
 
-        if LeapMsg_local is not None and GripperMsg_local is not None and teleoperation_mode == "MODE_1":
+        if UnityMsg_local is not None:
             # Get Current Status
-            leap_status = copy.deepcopy(LeapMsg_local)
+            unity_status = copy.deepcopy(UnityMsg_local)
 
-            if (leap_status.right_hand.is_present is True):
-                # Control the Gripper's position
-                grab_strength_from_unity = leap_status.right_hand.grab_strength
-                if (grab_strength_from_unity <= 1 and grab_strength_from_unity > value_starting_to_close): # Fully Close
-                    # grab_strength = 255 # This is for the on-off controller
-                    grab_strength = round(255*(grab_strength_from_unity-value_starting_to_close)*1.0/(1.0-value_starting_to_close),0) # Give an integer
-                else: # Fully Open
-                    grab_strength = 0 # Fully Open
+            # Control the Gripper's position
+            grab_strength_from_unity = unity_status.data
+            if (grab_strength_from_unity <= 1 and grab_strength_from_unity > value_starting_to_close): # Fully Close
+                # grab_strength = 255 # This is for the on-off controller
+                grab_strength = round(255*(grab_strength_from_unity-value_starting_to_close)*1.0/(1.0-value_starting_to_close),0) # Give an integer
+            else: # Fully Open
+                grab_strength = 0 # Fully Open
                     
-                # Control the Gripper's speed
-                current_position = copy.deepcopy(GripperMsg_local.gPOA)
-                grap_speed_ = np.abs(grab_strength - current_position)
+            # Control the Gripper's speed
+            # current_position = copy.deepcopy(GripperMsg_local.gPOA)
+            # grap_speed_ = np.abs(grab_strength - current_position)
    
-                # Additional treatment
-                command.rGTO = 1  
-                if grap_speed_ < value_position_tolerance:            
-                    grab_strength = current_position
-                    grap_speed = 0
-                    command.rGTO = 0 # Stops 
+            # Additional treatment
+            # command.rGTO = 1  
+            # if grap_speed_ < value_position_tolerance:            
+            #     grab_strength = current_position
+            #     grap_speed = 0
+            #     command.rGTO = 0 # Stops 
                     
-                elif grap_speed_ > value_for_max_speed:
-                    grap_speed = 255
-                else:
-                    grap_speed = round((grap_speed_ - value_position_tolerance)*1.0/(value_for_max_speed-value_position_tolerance)*255,0)
+            # elif grap_speed_ > value_for_max_speed:
+            #     grap_speed = 255
+            # else:
+            #     grap_speed = round((grap_speed_ - value_position_tolerance)*1.0/(value_for_max_speed-value_position_tolerance)*255,0)
 
-                print("Here Grapstrength: " + str(grab_strength) + " Speed : " + str(grap_speed) + "\n")
-                command.rPRA = grab_strength
-                command.rSPA = grap_speed
+            # print("Here Grapstrength: " + str(grab_strength) + " Speed : " + str(grap_speed) + "\n")
+            print("Here Grapstrength: " + str(grab_strength) + "\n")            
+            command.rPRA = grab_strength
+            # command.rSPA = grap_speed
 
 
         pub.publish(command)
@@ -168,12 +162,11 @@ def main(myArg1):
             pub.publish(command)
             rospy.sleep(1)
 
+            print("Now the gripper initialised\n")   
+            # Subscribing information from Unity
+            rospy.Subscriber("/unity/gripper1",Float32, callback_unity, queue_size=1)    
 
-            # Subscribing information from LEAP in Unity
-            rospy.Subscriber("/rain/status",RainMsg, callback_Mode, queue_size=1)    
-            rospy.Subscriber("/rain/leap_motion",LeapMsg_orion, callback_Leap, queue_size=1)
-
-            rospy.Subscriber("/SModelRobotInput",inputMsg.SModel_robot_input, callback_Gripper, queue_size=1)    
+            # rospy.Subscriber("/SModelRobotInput",inputMsg.SModel_robot_input, callback_Gripper, queue_size=1)  # This was used for giving adjustable speed input  
             control_gripper()
 
         except KeyboardInterrupt:
@@ -185,11 +178,11 @@ def main(myArg1):
 
 
 if __name__ == '__main__': 
-    # # This is for real
-    # if len(sys.argv) < 2:
-    #     print("Usage: SModelController.py [gazebo] or [real]")
-    # else:
-    #     main(sys.argv[1])
+    # This is for real
+    if len(sys.argv) < 2:
+        print("Usage: SModelController_unity.py [gazebo] or [real]")
+    else:
+        main(sys.argv[1])
         
-    # This is for debug    
-    main('real')
+    # # This is for debug    
+    # main('gazebo')
