@@ -46,7 +46,7 @@ import roslib; roslib.load_manifest('robotiq_s_model_control')
 import rospy
 from robotiq_s_model_control.msg import _SModel_robot_output  as outputMsg
 from time import sleep
-
+import sys
 
 def genCommand(char_input, command):
     """Update the command according to the character entered by the user."""    
@@ -185,23 +185,44 @@ def askForCommand(command):
 
     return raw_input(strAskForCommand)
 
-def publisher():
+def main(myArg1):
     """Main loop which requests new commands and publish them on the SModelRobotOutput topic."""
 
-    rospy.init_node('SModelSimpleController')
-    
-    pub = rospy.Publisher('SModelRobotOutput', outputMsg.SModel_robot_output)
-    # pub = rospy.Publisher('right_hand/command', outputMsg.SModel_robot_output)
+    if (myArg1 == 'gazebo') or (myArg1 == 'real'):
+        try: 
+            rospy.init_node('SModelSimpleController')
 
-    command = outputMsg.SModel_robot_output();
+            if myArg1 == 'gazebo':
+                ## This is for the gazebo Gripper:
+                pub = rospy.Publisher('right_hand/command', outputMsg.SModel_robot_output, queue_size = 1)
 
-    while not rospy.is_shutdown():
+            elif myArg1 == 'real':
+                ## This is for the real Gripper:
+                pub = rospy.Publisher('SModelRobotOutput', outputMsg.SModel_robot_output, queue_size = 1)
 
-        command = genCommand(askForCommand(command), command)            
-        pub.publish(command)
+            command = outputMsg.SModel_robot_output();
 
-        rospy.sleep(0.1)
-                        
+            while not rospy.is_shutdown():
+
+                command = genCommand(askForCommand(command), command)            
+                pub.publish(command)
+
+                rospy.sleep(0.1)
+
+        except KeyboardInterrupt:
+            rospy.signal_shutdown("KeyboardInterrupt")
+            raise                    
+
+    else:
+        rospy.signal_shutdown("Wrong Argument: It should be either 'gazebo' or 'real'")
+                    
 
 if __name__ == '__main__':
-    publisher()
+
+    # This is for real
+    if len(sys.argv) < 2:
+        print("Usage: SModelController.py [gazebo] or [real]")
+    else:
+        main(sys.argv[1])   
+
+    
